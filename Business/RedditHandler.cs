@@ -40,6 +40,7 @@ internal sealed class RedditHandler(ITokenHttpClient tokenHttpClient, RedditFeed
         {
             if (_accessToken == null || _accessToken.IsExpired)
             {
+                WriteDebug("Retrieving Access Token");
                 _accessToken = _tokenHttpClient.GetAccessTokenAsync().Result; //run sync because we're inside a lock
             }
 
