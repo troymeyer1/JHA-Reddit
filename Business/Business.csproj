@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>Jha.Reddit.Business</AssemblyName>
+		<RootNamespace>Jha.Reddit.Business</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="IdentityModel" Version="7.0.0" />
+	  <PackageReference Include="System.Threading.RateLimiting" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
+
+</Project>

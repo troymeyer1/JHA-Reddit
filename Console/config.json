@@ -1,0 +1,18 @@
+{
+  "RedditConfiguration": {
+    "BaseTokenUrl": "https://www.reddit.com/",
+    "BaseApiUrl": "https://oauth.reddit.com/",
+    "ClientId": "",
+    "ClientSecret": "",
+    "Feeds": [
+      {
+        "Name": "hunting",
+        "SubReddit": "r/hunting"
+      },
+      {
+        "Name": "funny",
+        "SubReddit": "r/funny"
+      }
+    ]
+  }
+}
