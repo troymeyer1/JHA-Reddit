@@ -12,14 +12,14 @@ namespace Jha.Reddit.Business;
 /// Class RedditRateLimitedHandler. This class cannot be inherited.
 /// Implements the <see cref="DelegatingHandler" />
 /// </summary>
-/// <param name="configuration">The configuration.</param>
+/// <param name="tokenHttpClient">The token http client.</param>
 /// <param name="feed">The feed.</param>
 /// <seealso cref="DelegatingHandler" />
-internal sealed class RedditHandler(RedditConfigEntity configuration, RedditFeedEntity feed) : DelegatingHandler(new HttpClientHandler())
+internal sealed class RedditHandler(ITokenHttpClient tokenHttpClient, RedditFeedEntity feed) : DelegatingHandler(new HttpClientHandler())
 {
     private const double MinSleepSeconds = 0.1;
 
-    private readonly RedditConfigEntity _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+    private readonly ITokenHttpClient _tokenHttpClient = tokenHttpClient ?? throw new ArgumentNullException(nameof(tokenHttpClient));
     private readonly RedditFeedEntity _feed = feed ?? throw new ArgumentNullException(nameof(feed));
     private TokenBucketRateLimiter _rateLimiter;
     private RedditRateSettings _initialRateSettings;
@@ -40,7 +40,7 @@ internal sealed class RedditHandler(RedditConfigEntity configuration, RedditFeed
         {
             if (_accessToken == null || _accessToken.IsExpired)
             {
-                _accessToken = GetAccessToken();
+                _accessToken = _tokenHttpClient.GetAccessTokenAsync().Result; //run sync because we're inside a lock
             }
 
             if (_rateLimiter == null)
@@ -134,28 +134,6 @@ internal sealed class RedditHandler(RedditConfigEntity configuration, RedditFeed
             TokensPerPeriod = tokenCount,
             AutoReplenishment = true
         });
-    }
-
-    /// <summary>
-    /// Get the access token as an asynchronous operation.
-    /// </summary>
-    /// <returns>A Task&lt;AccessTokenEntity&gt; representing the asynchronous operation.</returns>
-    private AccessTokenEntity GetAccessToken()
-    {
-        WriteDebug("Requesting access token");
-
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/v1/access_token");
-        requestMessage.SetBasicAuthentication(_configuration.ClientId, _configuration.ClientSecret);
-        requestMessage.Content = new FormUrlEncodedContent([new("grant_type", "client_credentials")]);
-
-        //make the request
-        using var client = new HttpClient();
-        client.BaseAddress = new(_configuration.BaseTokenUrl, string.Empty);
-        client.DefaultRequestHeaders.Add("User-Agent", FeedMonitor.UserAgent);
-
-        var response = client.Send(requestMessage);
-        response.EnsureSuccessStatusCode();
-        return response.Content.ReadFromJsonAsync<AccessTokenEntity>().Result;
     }
 
     /// <summary>

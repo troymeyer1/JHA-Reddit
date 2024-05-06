@@ -9,14 +9,14 @@ namespace Jha.Reddit.Business;
 /// Implements the <see cref="IRedditMonitorService" />
 /// </summary>
 /// <seealso cref="IRedditMonitorService" />
-/// <remarks>
-/// Initializes a new instance of the <see cref="RedditMonitorService"/> class.
-/// </remarks>
 /// <param name="configuration">The configuration.</param>
+/// <param name="httpClientFactory">The http client factory.</param>
 /// <exception cref="ArgumentNullException">configuration</exception>
-public class RedditMonitorService(RedditConfigEntity configuration) : IRedditMonitorService
+/// <remarks>Initializes a new instance of the <see cref="RedditMonitorService" /> class.</remarks>
+public class RedditMonitorService(RedditConfigEntity configuration, IHttpClientFactory httpClientFactory) : IRedditMonitorService
 {
     private readonly RedditConfigEntity _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     private readonly List<IRedditMonitorService> FeedMonitors = [];
     private bool _running;
 
@@ -41,7 +41,9 @@ public class RedditMonitorService(RedditConfigEntity configuration) : IRedditMon
         _running = true;
         foreach (var feed in _configuration.Feeds)
         {
-            var monitor = new FeedMonitor(configuration, feed);
+            var tokenHttpClient = _httpClientFactory.CreateTokenHttpClient(configuration);
+            var redditHttpClient = _httpClientFactory.CreateRedditHttpClient(tokenHttpClient, configuration, feed);
+            var monitor = new FeedMonitor(redditHttpClient, feed);
             monitor.TopPostChanged += OnTopPostChanged;
             monitor.TopUserChanged += OnTopUserChanged;
             FeedMonitors.Add(monitor);

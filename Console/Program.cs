@@ -32,7 +32,8 @@ try
         return;
     }
 
-    using var service = new RedditMonitorService(configSettings);
+    var httpClientFactory = new HttpClientFactory();
+    using var service = new RedditMonitorService(configSettings, httpClientFactory);
     var consoleLock = new object();
 
     service.TopPostChanged += (sender, args) =>

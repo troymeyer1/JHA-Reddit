@@ -15,21 +15,11 @@ namespace Jha.Reddit.Business;
 /// <remarks>
 /// Initializes a new instance of the <see cref="FeedMonitor"/> class.
 /// </remarks>
-/// <param name="configuration">The configuration.</param>
+/// <param name="httpClient">The http client.</param>
 /// <param name="feed">The feed.</param>
-public class FeedMonitor(RedditConfigEntity configuration, RedditFeedEntity feed) : IRedditMonitorService
+public class FeedMonitor(IRedditHttpClient httpClient, RedditFeedEntity feed) : IRedditMonitorService
 {
-    public const string UserAgent = "JhaRedditAssessment";
-
-    private readonly HttpClient _httpClient = new(new RedditHandler(configuration, feed))
-    {
-        BaseAddress = new(configuration.BaseApiUrl, string.Empty),
-        DefaultRequestHeaders =
-        {
-            { "User-Agent", UserAgent }
-        }
-    };
-
+    private readonly IRedditHttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly RedditFeedStatsEntity _feedStats = new(feed);
     private readonly Dictionary<string, RedditPostEntity> _posts = [];
     private Task _monitorTask;
